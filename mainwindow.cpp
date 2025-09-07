@@ -192,6 +192,48 @@ MainWindow::MainWindow(QWidget *parent)
         QMessageBox::information(this, "Sauvegarde", "Tâches préparées pour sauvegarde !");
     });
 
+    connect(ui->LoadTask, &QPushButton::clicked, this, [this]() {
+        QJsonArray taskArray;  // Le tableau final
+
+
+        QFile file("tasks.json");      // Crée un fichier (dans le dossier de l'exe)
+        QFile morocco_file("morocco.json");
+        QString json_string;
+
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QMessageBox::warning(this, "Erreur", "Impossible d’ouvrir le fichier !");
+            return;
+        }
+        QByteArray jsonData = file.readAll();
+        file.close();
+
+
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+        if (!jsonDoc.isArray()) {
+            QMessageBox::warning(this, "Erreur", "Format JSON invalide !");
+            return;
+        }
+        QJsonArray jsonArray = jsonDoc.array();
+        for (const QJsonValue &value : jsonArray) {
+            if (!value.isObject()) continue;
+
+            QJsonObject obj = value.toObject();
+
+            QString name = obj["name"].toString();
+            int seconds = obj["seconds"].toInt();
+            bool running = obj["running"].toBool();
+
+            qDebug() << "Tâche :" << name;
+            qDebug() << "Temps :" << seconds;
+            qDebug() << "En cours ?" << running;
+            qDebug() << "----------------------------";
+        }
+
+        QMessageBox::information(this, "Chargement", "Tâches lues depuis le fichier !");
+
+
+    });
+
 
     }
 

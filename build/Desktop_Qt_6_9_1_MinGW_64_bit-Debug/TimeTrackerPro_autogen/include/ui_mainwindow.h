@@ -35,9 +35,9 @@ public:
     QTableWidget *TaskTable;
     QGridLayout *gridLayout;
     QPushButton *DeleteTask;
-    QPushButton *pushButton_2;
     QPushButton *SaveTask;
     QPushButton *Renametask;
+    QPushButton *LoadTask;
     QMenuBar *menubar;
     QMenu *menutime_tracker;
     QStatusBar *statusbar;
@@ -80,11 +80,6 @@ public:
 
         gridLayout->addWidget(DeleteTask, 0, 0, 1, 1);
 
-        pushButton_2 = new QPushButton(layoutWidget);
-        pushButton_2->setObjectName("pushButton_2");
-
-        gridLayout->addWidget(pushButton_2, 1, 0, 1, 1);
-
         SaveTask = new QPushButton(layoutWidget);
         SaveTask->setObjectName("SaveTask");
 
@@ -94,6 +89,11 @@ public:
         Renametask->setObjectName("Renametask");
 
         gridLayout->addWidget(Renametask, 0, 1, 1, 1);
+
+        LoadTask = new QPushButton(layoutWidget);
+        LoadTask->setObjectName("LoadTask");
+
+        gridLayout->addWidget(LoadTask, 1, 0, 1, 1);
 
 
         verticalLayout->addLayout(gridLayout);
@@ -127,9 +127,9 @@ public:
         QTableWidgetItem *___qtablewidgetitem2 = TaskTable->horizontalHeaderItem(2);
         ___qtablewidgetitem2->setText(QCoreApplication::translate("MainWindow", "Action", nullptr));
         DeleteTask->setText(QCoreApplication::translate("MainWindow", "spprimer une tache", nullptr));
-        pushButton_2->setText(QCoreApplication::translate("MainWindow", "ChargerTache", nullptr));
         SaveTask->setText(QCoreApplication::translate("MainWindow", "Sauvegarder tache", nullptr));
         Renametask->setText(QCoreApplication::translate("MainWindow", "Rennomer une tache", nullptr));
+        LoadTask->setText(QCoreApplication::translate("MainWindow", "ChargerTache", nullptr));
         menutime_tracker->setTitle(QCoreApplication::translate("MainWindow", "time tracker", nullptr));
     } // retranslateUi
 
