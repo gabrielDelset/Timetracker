@@ -197,7 +197,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 
         QFile file("tasks.json");      // Crée un fichier (dans le dossier de l'exe)
-        QFile morocco_file("morocco.json");
         QString json_string;
 
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -223,10 +222,44 @@ MainWindow::MainWindow(QWidget *parent)
             int seconds = obj["seconds"].toInt();
             bool running = obj["running"].toBool();
 
-            qDebug() << "Tâche :" << name;
-            qDebug() << "Temps :" << seconds;
-            qDebug() << "En cours ?" << running;
-            qDebug() << "----------------------------";
+
+
+            QWidget* pWidget = new QWidget();
+            QPushButton* btn_edit = new QPushButton();
+            btn_edit->setText("Start/Stop");
+            QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+            pLayout->addWidget(btn_edit);
+            pLayout->setAlignment(Qt::AlignCenter);
+            pLayout->setContentsMargins(0, 0, 0, 0);
+            pWidget->setLayout(pLayout);
+          //  ui->TaskTable->setCellWidget(row, 2, pWidget);
+
+            for(int row =0; row < jsonArray.size() ; row++)
+            {
+                //colonne 0 -> nom de la tache
+                ui->TaskTable->insertRow(row);
+                QJsonObject obj = jsonArray[row].toObject();
+                QString name = obj["name"].toString();
+                int seconds = obj["seconds"].toInt();
+                bool running = obj["running"].toBool();
+
+                ui->TaskTable->setItem(row,0,new QTableWidgetItem(name));
+
+                //colonne 1 -> temps
+                ui->TaskTable->setItem(row,1,new QTableWidgetItem(seconds));
+
+                //colonne 2 -> temps
+                QPushButton* btn_edit = new QPushButton("Start");
+
+
+                ui->TaskTable->setCellWidget(row,2, btn_edit); //ajout du boutton
+                qDebug() << "row :" << row;
+                qDebug() << "Tâche :" << name;
+                qDebug() << "Temps :" << seconds;
+                qDebug() << "En cours ?" << running;
+                qDebug() << "----------------------------";
+
+            }
         }
 
         QMessageBox::information(this, "Chargement", "Tâches lues depuis le fichier !");
