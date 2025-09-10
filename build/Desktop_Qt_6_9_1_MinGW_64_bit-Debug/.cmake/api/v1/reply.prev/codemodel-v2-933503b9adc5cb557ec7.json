@@ -7,7 +7,7 @@
 				{
 					"build" : ".",
 					"hasInstallRule" : true,
-					"jsonFile" : "directory-.-Debug-f3478753a2a7d687c6e3.json",
+					"jsonFile" : "directory-.-Debug-62e4d8d4e0648070e762.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.16"
@@ -44,7 +44,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "TimeTrackerPro::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-TimeTrackerPro-Debug-77ce85c7a89520b3cfdf.json",
+					"jsonFile" : "target-TimeTrackerPro-Debug-393cb4cab3920928687a.json",
 					"name" : "TimeTrackerPro",
 					"projectIndex" : 0
 				},

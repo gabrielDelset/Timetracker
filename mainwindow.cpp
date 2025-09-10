@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "tools.h"
 #include "./ui_mainwindow.h"
 #include <QMessageBox>
 #include <QLineEdit>
@@ -11,21 +12,103 @@
 #include <QFile>
 
 
+void MainWindow::Starting() {
 
-static void setRowBackground(const QBrush &brush, QAbstractItemModel *model, int row, const QModelIndex &parent = QModelIndex());
+   QJsonArray jsonArray  = loadTasksFromFile();
 
-void setRowBackground(const QBrush &brush, QAbstractItemModel *model, int row, const QModelIndex &parent)
-{
-    if (!model || row < 0 || row >= model->rowCount(parent))
-        return;
+            QWidget* pWidget = new QWidget();
+            QPushButton* btn_edit = new QPushButton();
+            btn_edit->setText("Start/Stop");
+            QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+            pLayout->addWidget(btn_edit);
+            pLayout->setAlignment(Qt::AlignCenter);
+            pLayout->setContentsMargins(0, 0, 0, 0);
+            pWidget->setLayout(pLayout);
+          //  ui->TaskTable->setCellWidget(row, 2, pWidget);
 
-    if (parent.isValid() && parent.model() != model)
-        return;
+            for(int row =0; row < jsonArray.size() ; row++)
+            {
+                //colonne 0 -> nom de la tache
+                ui->TaskTable->insertRow(row);
+                QJsonObject obj = jsonArray[row].toObject();
+                QString name = obj["name"].toString();
+                int seconds = obj["seconds"].toInt();
+                bool running = obj["running"].toBool();
 
-    for (int i = 0; i < model->columnCount(parent); ++i) {
-        model->setData(model->index(row, i, parent), brush, Qt::BackgroundRole);
-    }
+                //colonne 0 -> boutton
+                ui->TaskTable->setItem(row,0,new QTableWidgetItem(name));
+
+                QTableWidgetItem *timeItem = new QTableWidgetItem("00:00:00");
+               // taskSeconds[seconds];
+                QString timeStr = ConvertIntTimestamp(seconds);
+
+                //colonne 1 -> temps
+                ui->TaskTable->setItem(row, 1, new QTableWidgetItem(timeStr));
+
+
+
+                QTimer *timer = new QTimer(this);
+                taskTimers[row] = timer;
+                taskSeconds[row] = seconds;
+
+
+
+                //colonne 2 -> boutton
+                QPushButton* btn_edit = new QPushButton(running ? "Pause" : "Start");
+
+                // Ajout du bouton à la cellule
+                ui->TaskTable->setCellWidget(row, 2, btn_edit);
+
+                // Connexion du bouton au timer
+                if (running) {
+                    taskTimers[row]->start(1000);
+                    btn_edit->setText("Pause");
+                    setRowBackground(QBrush(QColor(148, 252, 134)), ui->TaskTable->model(), row);
+                } else {
+                    taskTimers[row]->stop();
+                    btn_edit->setText("Start");
+                    setRowBackground(QBrush(QColor(182, 189, 181)), ui->TaskTable->model(), row);
+                }
+
+                // conection bouton
+                connect(btn_edit, &QPushButton::clicked, this, [=]() {
+                    if (taskTimers[row]->isActive()) {
+                        taskTimers[row]->stop();
+                        btn_edit->setText("Start");
+                        setRowBackground(QBrush(QColor(182, 189, 181)), ui->TaskTable->model(), row);
+                    } else {
+                        taskTimers[row]->start(1000);
+                        btn_edit->setText("Pause");
+                        setRowBackground(QBrush(QColor(148, 252, 134)), ui->TaskTable->model(), row);
+                    }
+                });
+
+                ui->TaskTable->setCellWidget(row,2, btn_edit); //ajout du boutton
+
+
+
+
+            // Mise à jour de l'affichage chaque seconde
+            connect(timer, &QTimer::timeout, this, [this, row]() {
+                taskSeconds[row]++;
+                QString timeStr = ConvertIntTimestamp(taskSeconds[row]);
+                ui->TaskTable->item(row, 1)->setText(timeStr);
+                });
+
+
+
+                qDebug() << "row :" << row;
+                qDebug() << "Tâche :" << name;
+                qDebug() << "Temps :" << seconds;
+                qDebug() << "En cours ?" << running;
+                qDebug() << "----------------------------";
+
+            }
+
+       // QMessageBox::information(this, "Chargement", "Tâches lues depuis le fichier !");    pop up qu'on utilise plus
 }
+
+
 
 
 
@@ -39,7 +122,7 @@ MainWindow::MainWindow(QWidget *parent)
     QStringList headers ={"Tache", "Temps","Action"};
     ui->TaskTable->setHorizontalHeaderLabels(headers);
     ui->TaskTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
+    Starting();
 
 
 
@@ -92,7 +175,7 @@ MainWindow::MainWindow(QWidget *parent)
                 } else {
                     // Démarre le timer
                     taskTimers[row]->start(1000);
-                    btn_edit->setText("Pause");
+                    btn_edit->setText("Stop");
 
                     setRowBackground(QBrush(QColor(148,252,134)),ui->TaskTable->model(),row);
                 }
@@ -101,15 +184,7 @@ MainWindow::MainWindow(QWidget *parent)
             // Mise à jour de l'affichage chaque seconde
             connect(timer, &QTimer::timeout, this, [this, row]() {
                 taskSeconds[row]++;
-
-                int h = taskSeconds[row] / 3600;
-                int m = (taskSeconds[row] % 3600) / 60;
-                int s = taskSeconds[row] % 60;
-
-                QString timeStr = QString("%1:%2:%3")
-                                      .arg(h, 2, 10, QChar('0'))
-                                      .arg(m, 2, 10, QChar('0'))
-                                      .arg(s, 2, 10, QChar('0'));
+                QString timeStr = ConvertIntTimestamp(taskSeconds[row]);
                 ui->TaskTable->item(row, 1)->setText(timeStr);
             });
 
@@ -183,92 +258,18 @@ MainWindow::MainWindow(QWidget *parent)
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
             file.write(doc.toJson(QJsonDocument::Indented));  // Écriture avec indentation
             file.close();
-            QMessageBox::information(this, "Sauvegarde", "Tâches sauvegardées avec succès !");
         } else {
             QMessageBox::warning(this, "Erreur", "Impossible d’ouvrir le fichier pour écrire.");
         }
 
-
-        QMessageBox::information(this, "Sauvegarde", "Tâches préparées pour sauvegarde !");
     });
 
     connect(ui->LoadTask, &QPushButton::clicked, this, [this]() {
-        QJsonArray taskArray;  // Le tableau final
-
-
-        QFile file("tasks.json");      // Crée un fichier (dans le dossier de l'exe)
-        QString json_string;
-
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            QMessageBox::warning(this, "Erreur", "Impossible d’ouvrir le fichier !");
-            return;
-        }
-        QByteArray jsonData = file.readAll();
-        file.close();
-
-
-        QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
-        if (!jsonDoc.isArray()) {
-            QMessageBox::warning(this, "Erreur", "Format JSON invalide !");
-            return;
-        }
-        QJsonArray jsonArray = jsonDoc.array();
-        for (const QJsonValue &value : jsonArray) {
-            if (!value.isObject()) continue;
-
-            QJsonObject obj = value.toObject();
-
-            QString name = obj["name"].toString();
-            int seconds = obj["seconds"].toInt();
-            bool running = obj["running"].toBool();
-
-
-
-            QWidget* pWidget = new QWidget();
-            QPushButton* btn_edit = new QPushButton();
-            btn_edit->setText("Start/Stop");
-            QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
-            pLayout->addWidget(btn_edit);
-            pLayout->setAlignment(Qt::AlignCenter);
-            pLayout->setContentsMargins(0, 0, 0, 0);
-            pWidget->setLayout(pLayout);
-          //  ui->TaskTable->setCellWidget(row, 2, pWidget);
-
-            for(int row =0; row < jsonArray.size() ; row++)
-            {
-                //colonne 0 -> nom de la tache
-                ui->TaskTable->insertRow(row);
-                QJsonObject obj = jsonArray[row].toObject();
-                QString name = obj["name"].toString();
-                int seconds = obj["seconds"].toInt();
-                bool running = obj["running"].toBool();
-
-                ui->TaskTable->setItem(row,0,new QTableWidgetItem(name));
-
-                //colonne 1 -> temps
-                ui->TaskTable->setItem(row,1,new QTableWidgetItem(seconds));
-
-                //colonne 2 -> temps
-                QPushButton* btn_edit = new QPushButton("Start");
-
-
-                ui->TaskTable->setCellWidget(row,2, btn_edit); //ajout du boutton
-                qDebug() << "row :" << row;
-                qDebug() << "Tâche :" << name;
-                qDebug() << "Temps :" << seconds;
-                qDebug() << "En cours ?" << running;
-                qDebug() << "----------------------------";
-
-            }
-        }
-
-        QMessageBox::information(this, "Chargement", "Tâches lues depuis le fichier !");
-
-
+        loadTasksFromFile(); //on l'a déclaré en haut
     });
-
-
     }
+
+
 
 
 MainWindow::~MainWindow()
@@ -276,3 +277,5 @@ MainWindow::~MainWindow()
 
     delete ui;
 }
+
+

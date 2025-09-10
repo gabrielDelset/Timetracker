@@ -25,6 +25,8 @@ public:
 private:
     QMap<int, QTimer*> taskTimers;
     QMap<int, int> taskSeconds;
+    void Starting();
+
 
     Ui::MainWindow *ui;
 };
