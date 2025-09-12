@@ -14,6 +14,37 @@
 
 void MainWindow::Starting() {
 
+    // Timer pour sauvegarde automatique toutes les 10 secondes
+    QTimer *autoSaveTimer = new QTimer(this);
+    connect(autoSaveTimer, &QTimer::timeout, this, [this]() {
+        QJsonArray taskArray;
+
+        int rowCount = ui->TaskTable->rowCount();
+        for (int i = 0; i < rowCount; ++i) {
+            QJsonObject taskObject;
+            taskObject["name"] = ui->TaskTable->item(i, 0)->text();
+            taskObject["seconds"] = taskSeconds[i];
+            taskObject["running"] = taskTimers[i]->isActive();
+            taskArray.append(taskObject);
+        }
+
+        QJsonDocument doc(taskArray);
+        QFile file("tasks.json");
+
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            file.write(doc.toJson(QJsonDocument::Indented));
+            file.close();
+            qDebug() << "[AutoSave] Tâches sauvegardées automatiquement.";
+        } else {
+            qWarning() << "[AutoSave] Impossible d’ouvrir le fichier pour écrire.";
+        }
+    });
+
+    // Démarrer le timer toutes les 10 secondes
+    autoSaveTimer->start(10000);
+
+
+
    QJsonArray jsonArray  = loadTasksFromFile();
 
             QWidget* pWidget = new QWidget();
@@ -195,17 +226,32 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    connect(ui->DeleteTask, &QPushButton::clicked, this, [this](){
-        //permet de supprimer la tache choisis
-        if( ui->TaskTable->currentRow() == -1)
-        {
-            //rien n'est selectionné
+    connect(ui->DeleteTask, &QPushButton::clicked, this, [this]() {
+        int row = ui->TaskTable->currentRow();
+        if (row == -1) {
             QMessageBox::warning(this, "Erreur", "Veuillez sélectionner une tâche !");
-
-        }else{
-            ui->TaskTable->removeRow(ui->TaskTable->currentRow());
+            return;
         }
+
+        // Arrêter et supprimer le timer associé à cette ligne
+        if (taskTimers.contains(row)) {
+            taskTimers[row]->stop();
+            taskTimers[row]->deleteLater(); // libère proprement le timer
+            taskTimers.remove(row);
+        }
+
+        // Supprimer la valeur dans le QMap des secondes
+        if (taskSeconds.contains(row)) {
+            taskSeconds.remove(row);
+        }
+
+        // Supprimer la ligne de la table
+        ui->TaskTable->removeRow(row);
+
+        // 🔁 Réindexer les timers/restes si nécessaire
+        // (voir bonus ci-dessous si tu veux aller plus loin)
     });
+
 
     connect(ui->Renametask, &QPushButton::clicked, this, [this](){
         //permet de supprimer la tache choisis
@@ -258,6 +304,7 @@ MainWindow::MainWindow(QWidget *parent)
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
             file.write(doc.toJson(QJsonDocument::Indented));  // Écriture avec indentation
             file.close();
+            // QMessageBox::warning(this, "succes", "succes");
         } else {
             QMessageBox::warning(this, "Erreur", "Impossible d’ouvrir le fichier pour écrire.");
         }
