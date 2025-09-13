@@ -10,9 +10,26 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFile>
+#include <Windows.h>
+#include <TlHelp32.h>
+#include <QSet>
 
 
 void MainWindow::Starting() {
+
+
+    QTimer *detectTask = new QTimer(this);
+    connect(detectTask, &QTimer::timeout, this, [this]() {
+        QSet<QString> processes = getVisibleWindowProcesses();
+        for (const QString& proc : processes) {
+            qDebug() << "Fenêtre visible :" << proc;
+        }
+
+    });
+
+    // Démarrer le timer toutes les 5 secondes
+    detectTask->start(5000);
+
 
     // Timer pour sauvegarde automatique toutes les 10 secondes
     QTimer *autoSaveTimer = new QTimer(this);

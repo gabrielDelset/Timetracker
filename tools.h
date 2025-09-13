@@ -18,5 +18,7 @@ QString ConvertIntTimestamp(int seconds);
 //fonction de colorbnackground
 void setRowBackground(const QBrush &brush, QAbstractItemModel *model, int row, const QModelIndex &parent = QModelIndex());
 
+QSet<QString> getVisibleWindowProcesses();
+
 
 #endif // TOOLS_H

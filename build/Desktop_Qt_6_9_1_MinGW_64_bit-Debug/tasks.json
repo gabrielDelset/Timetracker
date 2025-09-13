@@ -2,11 +2,11 @@
     {
         "name": "pc",
         "running": true,
-        "seconds": 120
+        "seconds": 6189
     },
     {
         "name": "gab code qt",
         "running": true,
-        "seconds": 74
+        "seconds": 6143
     }
 ]

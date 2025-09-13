@@ -10,6 +10,62 @@
 #include <QFile>
 #include <QModelIndex>
 
+#include "tools.h"
+#include <windows.h>
+#include <psapi.h>
+#include <tchar.h>
+
+struct WindowEnumContext {
+    QSet<QString>* processes;
+    QStringList* excluded;
+};
+
+QSet<QString> getVisibleWindowProcesses() {
+    QSet<QString> visibleProcesses;
+    QStringList excluded = {
+        "explorer.exe",
+        "textinputhost.exe",
+        "applicationframehost.exe",
+        "protonvpn.client.exe",
+        "windscribe.exe",
+        "overwolf.exe",
+        "ms-teams.exe",
+        "systemsettings.exe",
+        "microsoft.media.player.exe"
+    };
+
+    // On prépare le contexte à passer au callback
+    WindowEnumContext context = { &visibleProcesses, &excluded };
+
+    EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
+        WindowEnumContext* ctx = reinterpret_cast<WindowEnumContext*>(lParam);
+
+        if (!IsWindowVisible(hwnd))
+            return TRUE;
+
+        DWORD pid;
+        GetWindowThreadProcessId(hwnd, &pid);
+
+        HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+        if (hProcess) {
+            TCHAR exeName[MAX_PATH];
+            if (GetModuleBaseName(hProcess, NULL, exeName, MAX_PATH)) {
+                QString processName = QString::fromWCharArray(exeName).toLower();
+
+                // Ne pas ajouter si présent dans la liste d'exclusion
+                if (!ctx->excluded->contains(processName)) {
+                    ctx->processes->insert(processName);
+                }
+            }
+            CloseHandle(hProcess);
+        }
+        return TRUE;
+    }, reinterpret_cast<LPARAM>(&context));
+
+    return visibleProcesses;
+}
+
+
 
 void setRowBackground(const QBrush &brush, QAbstractItemModel *model, int row, const QModelIndex &parent)
 {

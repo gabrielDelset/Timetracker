@@ -593,5 +593,7 @@ TimeTrackerPro_autogen/timestamp: \
 	C:/Users/gabde/Desktop/gab/TimeTrackerPro/mainwindow.h \
 	C:/Users/gabde/Desktop/gab/TimeTrackerPro/tools.cpp \
 	C:/Users/gabde/Desktop/gab/TimeTrackerPro/tools.h \
+	C:/Users/gabde/Desktop/gab/TimeTrackerPro/windows.cpp \
+	C:/Users/gabde/Desktop/gab/TimeTrackerPro/windows.h \
 	C:/Users/gabde/Desktop/gab/TimeTrackerPro/mainwindow.ui \
 	C:/Qt/Tools/CMake_64/bin/cmake.exe

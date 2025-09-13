@@ -355,6 +355,12 @@
 			"MU",
 			"EWIEGA46WW/moc_tools.cpp",
 			null
+		],
+		[
+			"C:/Users/gabde/Desktop/gab/TimeTrackerPro/windows.h",
+			"MU",
+			"EWIEGA46WW/moc_windows.cpp",
+			null
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
@@ -434,7 +440,8 @@
 			"MU",
 			null
 		],
-		[ "C:/Users/gabde/Desktop/gab/TimeTrackerPro/tools.cpp", "MU", null ]
+		[ "C:/Users/gabde/Desktop/gab/TimeTrackerPro/tools.cpp", "MU", null ],
+		[ "C:/Users/gabde/Desktop/gab/TimeTrackerPro/windows.cpp", "MU", null ]
 	],
 	"UIC_OPTIONS" : [],
 	"UIC_SEARCH_PATHS" : [],
